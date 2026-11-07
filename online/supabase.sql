@@ -47,5 +47,13 @@ create policy results_read on public.results for select to authenticated
 create policy results_insert on public.results for insert to authenticated
   with check (exists (select 1 from public.rooms r where r.code = room_code and r.host_id = auth.uid()));
 
+-- Permisos de tabla: los proyectos nuevos de Supabase NO los dan solos para tablas creadas con SQL.
+-- (RLS decide qué filas; GRANT decide si el rol puede tocar la tabla.)
+grant usage on schema public to anon, authenticated;
+grant select on public.rooms to anon, authenticated;
+grant insert, update, delete on public.rooms to authenticated;
+grant select, insert on public.results to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+
 -- Opcional: borrar salas de más de 2 días (requiere la extensión pg_cron)
 -- select cron.schedule('berry-clean', '0 4 * * *', $$delete from public.rooms where created_at < now() - interval '2 days'$$);
