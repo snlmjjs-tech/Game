@@ -1,0 +1,92 @@
+/* =====================================================================
+   BERRY FX · fondo vivo + logo animado + «tacto de videojuego»
+   Fuente única. Se inyecta (inline) en index.html, offline/ y online/
+   con tools/inject-ambient.py — edita aquí y vuelve a ejecutar el script.
+   Solo anima transform/opacity (más SMIL en 3 formas orgánicas).
+   ===================================================================== */
+.fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:strict;
+  --g1:rgba(255,93,143,.30);--g2:rgba(255,197,51,.36);--g3:rgba(123,63,160,.20);--blob:rgba(214,39,90,.10);--blob2:rgba(255,197,51,.16);--blob3:rgba(61,79,209,.09)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fx{--g1:rgba(255,93,143,.22);--g2:rgba(255,197,51,.10);--g3:rgba(140,100,255,.30);--blob:rgba(255,93,143,.10);--blob2:rgba(255,197,51,.07);--blob3:rgba(140,120,255,.14)}}
+:root[data-theme="dark"] .fx{--g1:rgba(255,93,143,.22);--g2:rgba(255,197,51,.10);--g3:rgba(140,100,255,.30);--blob:rgba(255,93,143,.10);--blob2:rgba(255,197,51,.07);--blob3:rgba(140,120,255,.14)}
+body[data-screen="game"] .fx{display:none}
+.fx-paused .fx *,.fx-paused .fx *::before{animation-play-state:paused!important}
+
+/* gradientes ambientales que respiran */
+.fx-glow{position:absolute;border-radius:50%;will-change:transform}
+.fx-glow.g1{width:78vmax;height:78vmax;left:-26vmax;top:-30vmax;background:radial-gradient(closest-side,var(--g1),transparent);animation:fxG1 24s ease-in-out infinite alternate}
+.fx-glow.g2{width:70vmax;height:70vmax;right:-24vmax;bottom:-28vmax;background:radial-gradient(closest-side,var(--g2),transparent);animation:fxG2 29s ease-in-out infinite alternate}
+.fx-glow.g3{width:58vmax;height:58vmax;left:30vw;top:30vh;background:radial-gradient(closest-side,var(--g3),transparent);animation:fxG3 34s ease-in-out infinite alternate}
+@keyframes fxG1{to{transform:translate3d(16vmax,12vmax,0) scale(1.18)}}
+@keyframes fxG2{to{transform:translate3d(-14vmax,-9vmax,0) scale(1.12)}}
+@keyframes fxG3{from{transform:translate3d(-12vmax,6vmax,0) scale(.9)}to{transform:translate3d(10vmax,-8vmax,0) scale(1.15)}}
+
+/* formas orgánicas (morph SMIL + giro lento) */
+.fx-blob{position:absolute;width:min(46vmin,420px);height:min(46vmin,420px);will-change:transform}
+.fx-blob svg{width:100%;height:100%;display:block;overflow:visible}
+.fx-blob.b1{left:-8vmin;top:12vh;animation:fxSpin 80s linear infinite}
+.fx-blob.b2{right:-10vmin;top:-6vmin;animation:fxSpin 95s linear infinite reverse}
+.fx-blob.b3{right:12vw;bottom:-14vmin;animation:fxSpin 110s linear infinite}
+@keyframes fxSpin{to{transform:rotate(360deg)}}
+
+/* capas de profundidad con parallax sutil (variables --px/--py en :root) */
+.fx-layer{position:absolute;inset:-4%;will-change:transform;transform:translate3d(calc(var(--px,0)*var(--d)*1px),calc(var(--py,0)*var(--d)*1px),0)}
+.fxi{position:absolute;width:var(--s);height:calc(var(--s)*1.15);margin:calc(var(--s)*-.575) 0 0 calc(var(--s)*-.5);opacity:var(--op,.8)}
+.fxo{width:100%;height:100%;animation:var(--fa) var(--d1) ease-in-out var(--dl1) infinite alternate}
+.fxs{width:100%;height:100%;animation:var(--sa) var(--d2) ease-in-out var(--dl2) infinite alternate;transform:rotate(var(--r))}
+.fxs svg{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 8px rgba(42,21,53,.18))}
+.fxi.rise{top:106%!important;animation:fxRise var(--rd) linear var(--rdl) infinite}
+.fxi.twinkle .fxs{animation:fxTw var(--d2) ease-in-out var(--dl2) infinite}
+@keyframes fxFA{from{transform:translate3d(0,-14px,0)}to{transform:translate3d(8px,22px,0)}}
+@keyframes fxFB{from{transform:translate3d(-12px,10px,0)}to{transform:translate3d(14px,-26px,0)}}
+@keyframes fxFC{from{transform:translate3d(10px,-8px,0)}to{transform:translate3d(-16px,16px,0)}}
+@keyframes fxSA{from{transform:rotate(calc(var(--r) - 10deg))}to{transform:rotate(calc(var(--r) + 12deg))}}
+@keyframes fxSB{from{transform:rotate(calc(var(--r) + 6deg)) scale(.96)}to{transform:rotate(calc(var(--r) - 16deg)) scale(1.05)}}
+@keyframes fxSC{from{transform:rotate(calc(var(--r) - 4deg)) translateX(-6px)}to{transform:rotate(calc(var(--r) + 8deg)) translateX(8px)}}
+@keyframes fxRise{from{transform:translate3d(0,0,0)}to{transform:translate3d(var(--dx,20px),-118vh,0)}}
+@keyframes fxTw{0%,100%{transform:scale(.55) rotate(var(--r));opacity:.35}50%{transform:scale(1.1) rotate(calc(var(--r) + 40deg));opacity:1}}
+.fx-dust{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- Logo animado ---------- */
+.logo{position:relative;display:inline-block;perspective:600px;animation:none}
+.logo .ch,.logo .sp{display:inline-block}
+.logo .ch{--ext:#12061a;position:relative;transform-origin:50% 92%;
+  text-shadow:0 1px 0 var(--ext),0 2px 0 var(--ext),0 3px 0 var(--ext),0 4px 0 var(--ext),0 5px 0 var(--ext),0 6px 0 var(--ext),0 18px 22px rgba(42,21,53,.30);
+  animation:chIn .85s cubic-bezier(.2,.9,.25,1.12) both;animation-delay:calc(140ms + var(--i)*62ms)}
+.logo .b .ch{--ext:#74112f}
+:root[data-theme="dark"] .logo .ch{--ext:#06020a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .logo .ch{--ext:#06020a}:root:not([data-theme="light"]) .logo .b .ch{--ext:#5b0c24}}
+.logo .ch::after{content:attr(data-c);position:absolute;left:0;top:0;color:#fff;opacity:0;text-shadow:none;pointer-events:none;animation:chGlint 7s ease-in-out infinite;animation-delay:calc(2.4s + var(--i)*.09s)}
+.logo.settled{animation:logoFloat 6s ease-in-out infinite}
+.logo.settled .ch{animation:none;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.logo.settled .ch::after{animation:chGlint 7s ease-in-out infinite;animation-delay:calc(1s + var(--i)*.09s)}
+@media (hover:hover){.logo.settled .ch:hover{transform:translateY(-12px) rotate(-5deg) scale(1.1)}}
+@keyframes chIn{0%{opacity:0;transform:translateY(-70px) scale(.55) rotate(-10deg)}55%{opacity:1;transform:translateY(10px) scale(1.07) rotate(2.5deg)}78%{transform:translateY(-4px) scale(.98) rotate(-1deg)}100%{opacity:1;transform:none}}
+@keyframes chGlint{0%,16%,100%{opacity:0}7%{opacity:.8}}
+@keyframes logoFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}
+.logo-wrap{position:relative;display:inline-block;transform:translate3d(calc(var(--px,0)*8px),calc(var(--py,0)*5px),0)}
+.lg-deco{position:absolute;pointer-events:none;width:var(--s);height:calc(var(--s)*1.15);opacity:0;animation:lgPop .6s cubic-bezier(.2,.9,.25,1.2) var(--dl,1s) both}
+.lg-deco .o{display:block;width:100%;height:100%;animation:var(--fa) var(--d1) ease-in-out infinite alternate}
+.lg-deco svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 5px rgba(42,21,53,.25))}
+@keyframes lgPop{from{opacity:0;transform:scale(.3) rotate(-30deg)}to{opacity:1;transform:none}}
+
+/* ---------- Tacto de videojuego para .btn y escenas de las pantallas ---------- */
+.btn{background-image:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 48%,rgba(0,0,0,.08));overflow:hidden}
+.btn:not(.ghost):not(.sm):not(.icon)::after{content:"";position:absolute;top:-30%;bottom:-30%;left:0;width:34%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-160%) skewX(-22deg);animation:btnShine 4.6s ease-in-out 1.2s infinite}
+@keyframes btnShine{0%,60%{transform:translateX(-160%) skewX(-22deg)}100%{transform:translateX(440%) skewX(-22deg)}}
+.stage-av .sun{transform-origin:72px 27px;animation:sunPulse 5s ease-in-out infinite}
+.stage-av .h1{animation:hillSway 11s ease-in-out infinite alternate}
+.stage-av .h2{animation:hillSway 8s ease-in-out -3s infinite alternate-reverse}
+.stage-av .cl{fill:#fff;opacity:.85;animation:cloudDrift 28s linear infinite}
+.stage-av .cl.c2{animation-duration:40s;animation-delay:-16s;opacity:.65}
+@keyframes sunPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes hillSway{from{transform:translateX(-1.6px)}to{transform:translateX(1.6px)}}
+@keyframes cloudDrift{from{transform:translateX(-30px)}to{transform:translateX(140px)}}
+
+@media (prefers-reduced-motion:reduce){
+  .fx-glow,.fx-blob,.fxo,.fxs,.fxi.rise,.logo.settled,.stage-av .sun,.stage-av .h1,.stage-av .h2,.stage-av .cl,.lg-deco .o{animation:none!important}
+  .fxi.rise{display:none}
+  .logo .ch{animation:none!important;opacity:1}
+  .logo .ch::after{display:none}
+  .btn:not(.ghost)::after{display:none}
+}
