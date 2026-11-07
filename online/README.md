@@ -29,8 +29,15 @@ Mientras `config.js` esté vacío, la página funciona en **modo demostración l
 
 Cada navegador simula su propio personaje (la física corre local) y el profesor reenvía las posiciones de todos para dibujar a los demás. Los niveles se generan con una semilla común, así que todos ven lo mismo.
 
+## Cómo se ahorran mensajes
+
+- **Predicción de movimiento:** cada jugador solo envía su posición cuando se aparta de lo que los demás ya predicen (por su velocidad), cambia de estado (salto, aturdido, meta…) o pasó ~1 s. Correr en línea recta casi no gasta mensajes.
+- **Por cercanía:** si no hay nadie cerca (nadie lo ve), el umbral es mayor y envía mucho menos. Esto lo decide cada navegador con las posiciones que ya conoce.
+- **Tope duro:** la predicción solo puede *reducir* envíos; nunca superan la parte del presupuesto (`MSG_BUDGET`) que le toca a cada jugador. Lo que se ahorra en subida se reasigna a la bajada (más actualizaciones de los demás).
+- Medido en pruebas locales (jugadores simulados): total ≈ 84 mensajes/s con 30 jugadores y `MSG_BUDGET` 90; con 12 jugadores y presupuesto 40, ≈ 39.
+
 ## Límites y notas
 
-- **Cupo del plan gratis de Supabase:** ~100 mensajes/s y 200 conexiones. `MSG_BUDGET` (90) reparte ese presupuesto entre los jugadores: con más alumnos, las posiciones se actualizan menos veces por segundo (el movimiento se interpola). Para clases grandes, un plan de pago permite subirlo.
+- **Plan gratis de Supabase** ([documentación oficial](https://supabase.com/docs/guides/realtime/limits)): 200 conexiones y 100 mensajes/s; si se supera, Supabase **desconecta**. Por eso `MSG_BUDGET` (90) queda por debajo. Plan Pro: 500 conexiones y 500 mensajes/s (sube `MSG_BUDGET` a ~300–400).
 - Los resultados y las respuestas correctas viajan al navegador (el juego corre en el cliente): un alumno técnico podría hacer trampa. Es adecuado para uso en clase, no para competencias con premios.
 - No hay reconexión a mitad de nivel: si un alumno recarga, entra en el siguiente nivel.

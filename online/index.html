@@ -1810,26 +1810,51 @@ function applySnap(m){
     const p=roster.find(q=>q.id===id);if(!p)continue;
     const a=m.s[id];
     if(!p.seen){p.x=a[0];p.y=a[1];p.seen=true}
-    p.nx=a[0];p.ny=a[1];p.vx=a[2];p.face=a[3]||1;p.og=!!a[4];p.stun=a[5]?1:0;p.boost=a[6]?1:0;
+    p.nx=a[0];p.ny=a[1];p.vx=a[2];p.vy=a[15]||0;p.age=0;p.face=a[3]||1;p.og=!!a[4];p.stun=a[5]?1:0;p.boost=a[6]?1:0;
     p.fin=!!a[7];p.time=a[8];p.correct=a[9];p.wrong=a[10];p.out=!!a[11];p.outRound=a[12];p.outX=a[13];p.outT=a[14];
   }
+  netLF=clamp(+m.q||1,1,6);
   if(m.g>=0&&!graceShown&&state==='race'){graceShown=true;flash('¡Alguien llegó! Quedan '+m.g+' s',2200)}
 }
 function remoteStep(p,dt){
   if(p.out)return;
-  p.nx+=p.vx*dt;
+  p.age=(p.age||0)+dt;
+  if(p.age<2.5){
+    p.nx+=p.vx*dt;
+    if(!p.og&&p.age<.6){p.ny+=p.vy*dt;p.vy=Math.min(1000,p.vy+1800*dt)}
+  }
   const k=Math.min(1,dt*10);
   p.x+=(p.nx-p.x)*k;p.y+=(p.ny-p.y)*k;
   if(Math.abs(p.x-p.nx)>320)p.x=p.nx;if(Math.abs(p.y-p.ny)>320)p.y=p.ny;
   p.phase+=Math.abs(p.vx)*dt*.07;
 }
+/* Envío por predicción (dead reckoning): los demás extrapolan mi posición con mi velocidad,
+   así que solo envío cuando la realidad se aparta de esa predicción, cambia mi estado o pasó mucho tiempo.
+   Si no hay nadie cerca (no me ven), el umbral es mayor y envío mucho menos. */
+let sent=null,netLF=1,netClock=0;/* reloj de juego (acumula el mismo dt limitado que usa la física) */
+const flagsOf=()=>(me.face>0?1:0)|(me.og?2:0)|(me.stun>0?4:0)|(me.boost>0?8:0)|(me.fin?16:0)|(me.out?32:0);
+function predictAt(st,t){
+  t=Math.min(t,2.5);
+  let y=st.y;if(!(st.f&2)){const tt=Math.min(t,.6);y=st.y+st.vy*tt+900*tt*tt}
+  return [st.x+st.vx*t,y];
+}
+function hasAudience(){
+  const vert=L.type==='lava',span=vert?H*1.4:W*1.4;
+  for(const p of roster){if(p.remote&&!p.out&&Math.abs(vert?p.y-me.y:p.x-me.x)<span)return true}
+  return false;
+}
 function netTick(dt){
   if(ROLE!=='player'||!me||!upCh||!L||state==='idle')return;
-  posT-=dt;if(posT>0&&!forcePos)return;
-  const hz=clamp(BUDGET/(2*Math.max(1,roster.length)),1,6);
-  posT=1/hz;forcePos=false;
+  netClock+=dt;const now=netClock,f=flagsOf();
+  if(sent&&!forcePos){
+    const near=hasAudience(),lf=netLF,thr=(near?16:70)*lf,capI=2*Math.max(1,roster.length)/BUDGET,minI=Math.max(capI,(near?.08:.4)*lf),maxI=near?1:2,el=now-sent.t;
+    if(el<minI)return;
+    const pr=predictAt(sent,el);
+    if(f===sent.f&&me.correct===sent.c&&me.wrong===sent.w&&Math.hypot(me.x-pr[0],me.y-pr[1])<thr&&el<maxI)return;
+  }
+  forcePos=false;sent={x:me.x,y:me.y,vx:me.vx,vy:me.vy,f,c:me.correct,w:me.wrong,t:now};
   const tot=progTotal()||1;
-  try{upCh.send({t:'pos',d:[R(me.x),R(me.y),R(me.vx),me.face,me.og?1:0,me.stun>0?1:0,me.boost>0?1:0,me.fin?1:0,+(me.time||0).toFixed(2),me.correct,me.wrong,me.out?1:0,me.outRound||0,R(me.outX||0),+(me.outT||0).toFixed(2),R(clamp(prog(me)/tot,0,1)*1000)]})}catch(e){}
+  try{upCh.send({t:'pos',d:[R(me.x),R(me.y),R(me.vx),me.face,me.og?1:0,me.stun>0?1:0,me.boost>0?1:0,me.fin?1:0,+(me.time||0).toFixed(2),me.correct,me.wrong,me.out?1:0,me.outRound||0,R(me.outX||0),+(me.outT||0).toFixed(2),R(clamp(prog(me)/tot,0,1)*1000),R(me.vy)]})}catch(e){}
 }
 function showResultsNet(m){
   if(ROLE!=='player'||!L)return;
@@ -1868,7 +1893,7 @@ $('#pname').onkeydown=e=>{if(e.key==='Enter')$('#bPlay').click()};
 $('#lLeave').onclick=()=>leaveRoom();
 
 /* ---------- Profesor (hace de servidor de la sala) ---------- */
-const HS={players:new Map(),phase:'lobby',idx:0,t0:0,graceAt:0,tick:null,snapAcc:0,forceEnd:false,lastRes:null,rosterT:null,liveN:0};
+const HS={players:new Map(),phase:'lobby',idx:0,t0:0,graceAt:0,tick:null,snapAcc:0,forceEnd:false,lastRes:null,rosterT:null,liveN:0,up:0,dn:0,lf:1,lastSnapT:0,upRate:0};
 async function createRoomUI(){
   if(!quiz.levels.reduce((a,l)=>a+validQs(l).length,0)){msg('Agrega al menos una pregunta válida antes de crear la sala.','err');return}
   const b=$('#hCreate'),label=b.textContent;
@@ -1899,7 +1924,7 @@ async function hostAddPlayer(m){
 function onHostUp(id,u){
   const pl=HS.players.get(id);if(!pl||!u)return;
   pl.last=Date.now();pl.gone=false;
-  if(u.t==='pos'&&Array.isArray(u.d)&&u.d.length>=16&&HS.phase==='play')pl.d=u.d.slice(0,16).map(Number);
+  if(u.t==='pos'&&Array.isArray(u.d)&&u.d.length>=16&&HS.phase==='play'){pl.d=u.d.slice(0,17).map(Number);pl.dirty=true;HS.up++}
   else if(u.t==='leave'){
     if(HS.phase==='lobby'){HS.players.delete(id);pl.sub&&pl.sub.close();scheduleRoster()}else pl.gone=true;
   }
@@ -1921,7 +1946,7 @@ function hostTick(){
   const now=Date.now(),all=[...HS.players.values()];
   all.forEach(p=>{if(now-p.last>12000){if(HS.phase==='lobby'){HS.players.delete(p.id);p.sub&&p.sub.close();scheduleRoster()}else p.gone=true}});
   if(HS.phase==='play'){
-    const list=all.filter(p=>p.inLevel),hz=clamp(BUDGET/(2*Math.max(1,list.length)),1,6);
+    const list=all.filter(p=>p.inLevel),hz=clamp(Math.max(BUDGET/2,BUDGET-HS.upRate)/Math.max(1,list.length),1,10);
     HS.snapAcc+=.1;
     if(HS.snapAcc>=1/hz-.001){HS.snapAcc=0;sendSnap(list)}
     if(!HS.graceAt&&list.some(p=>p.d&&p.d[7]))HS.graceAt=now+GRACE*1000;
@@ -1929,10 +1954,15 @@ function hostTick(){
     if(HS.forceEnd||list.every(done)||(HS.graceAt&&now>HS.graceAt)||(now-HS.t0)/1000>CAP)endLevelHost();
   }
   if(++HS.liveN%5===0)renderLive();
+  if(HS.liveN%20===0){const rate=(HS.up+HS.dn)/2;HS.upRate=HS.up/2;HS.up=HS.dn=0;HS.lf=clamp(rate/(.7*BUDGET),1,6)}
 }
 function sendSnap(list){
-  const s={};list.forEach(p=>{if(p.d)s[p.id]=p.d.slice(0,15)});
-  down.send({t:'snap',s,g:HS.graceAt?Math.max(0,Math.ceil((HS.graceAt-Date.now())/1000)):-1});
+  const s={};let n=0;
+  list.forEach(p=>{if(p.d&&p.dirty){s[p.id]=p.d.slice(0,15).concat([p.d[16]||0]);p.dirty=false;n++}});
+  const now=Date.now();
+  if(!n&&now-HS.lastSnapT<1000)return;          /* sin cambios: solo un latido por segundo */
+  HS.lastSnapT=now;HS.dn+=list.length;
+  down.send({t:'snap',s,g:HS.graceAt?Math.max(0,Math.ceil((HS.graceAt-now)/1000)):-1,q:+HS.lf.toFixed(2)});
 }
 function startLevelHost(){
   const list=[...HS.players.values()].filter(p=>!p.gone);
