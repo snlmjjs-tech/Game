@@ -9,11 +9,14 @@ root = pathlib.Path(__file__).resolve().parent.parent
 css = (root / 'assets/engine2.css').read_text(encoding='utf-8')
 js = (root / 'assets/engine2.js').read_text(encoding='utf-8')
 
+SND = '''<button class="btn ghost sm snd2" id="gSnd" aria-pressed="true" aria-label="Sonido de personajes: activado"><svg class="ic off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg><svg class="ic on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>'''
+
 NEW_GAME = '''<main id="game" class="screen">
   <div class="stage" id="stage">
     <canvas id="cv" width="960" height="720" role="img" aria-label="Escenario del juego: carrera de bayas con preguntas"></canvas>
     <div class="hud">
       <button class="btn ghost sm" id="gExit" aria-label="Salir de la carrera"><svg class="ic" aria-hidden="true"><use href="#i-exit"/></svg><span class="gx">Salir</span></button>
+      <button class="btn ghost sm snd2" id="gSnd" aria-pressed="true" aria-label="Sonido de personajes: activado"><svg class="ic off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg><svg class="ic on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
       <span class="pill" id="gLvl">Nivel 1</span>
       <span class="pill" id="gScore" aria-live="off">0 pts</span>
     </div>
@@ -45,6 +48,9 @@ for page in ['offline/index.html', 'online/index.html']:
         ov = re.findall(r'^    <div class="overlay" id="(?:qOv|rOv)".*$', blk, re.M)
         assert len(ov) == 2, (page, len(ov))
         s = s[:m.start()] + NEW_GAME % {'overlays': '\n'.join(ov)} + s[m.end():]
+    if 'id="gSnd"' not in s:
+        s = s.replace('<span class="gx">Salir</span></button>\n', '<span class="gx">Salir</span></button>\n      ' + SND + '\n', 1)
+        assert 'id="gSnd"' in s, page
     if 'id="rotHint"' not in s:
         s = re.sub(r'(<main id="game" class="screen">.*?)(</main>)', lambda m: m.group(1) + '  <div class="rot" id="rotHint" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.6"/><path d="M11 18.5h2"/></svg><span>Gira el teléfono para ver más del mundo</span></div>\n' + m.group(2), s, count=1, flags=re.S)
     # 3) CSS

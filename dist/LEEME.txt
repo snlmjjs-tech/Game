@@ -1,0 +1,19 @@
+BERRY RUN - archivos para subir a aulagame.cl
+=============================================
+
+Sube estos 3 archivos HTML a la MISMA carpeta de tu hosting (por ejemplo public_html):
+
+  index.html    -> menu principal (elige Online u Offline)
+  offline.html  -> juego sin internet
+  online.html   -> juego en vivo con codigo de sala (usa Supabase)
+
+No necesitas subir nada mas: la fuente, la libreria de Supabase y la configuracion
+ya estan dentro de cada archivo.
+
+Recomendaciones
+- Usa HTTPS (candado) en aulagame.cl: algunos navegadores restringen el audio y el
+  portapapeles en sitios sin HTTPS.
+- La version online guarda las salas en tu proyecto de Supabase (la clave publica ya
+  esta incluida). Si algun dia cambias de proyecto, edita SUPABASE_URL y
+  SUPABASE_ANON_KEY dentro de online.html (buscalos con Ctrl+F).
+- Si actualizas el juego, vuelve a subir los archivos y recarga con Ctrl+F5.

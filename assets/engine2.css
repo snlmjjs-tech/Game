@@ -62,3 +62,7 @@ body[data-screen="game"]{overflow:hidden;overscroll-behavior:none;touch-action:n
 }
 @keyframes rotPhone{0%,25%{transform:rotate(0)}55%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
 @media (prefers-reduced-motion:reduce){#game .rot svg{animation:none}}
+
+#game .hud .btn.snd2{width:40px;padding:0;justify-content:center}
+#game .hud .btn.snd2 .on{display:none}#game .hud .btn.snd2[aria-pressed="true"] .on{display:block}#game .hud .btn.snd2[aria-pressed="true"] .off{display:none}
+#game .hud .btn.snd2 svg{width:20px;height:20px}
