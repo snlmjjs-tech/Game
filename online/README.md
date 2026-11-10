@@ -1,4 +1,4 @@
-# Berry Run Online
+# Hotdog Run Online
 
 Carrera en vivo para toda la clase: el profesor crea una sala, los estudiantes entran con un código de 6 números y todos juegan el mismo nivel a la vez (como Gimkit / Fall Guys).
 

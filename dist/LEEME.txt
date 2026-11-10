@@ -1,4 +1,4 @@
-BERRY RUN - archivos para subir a aulagame.cl
+HOTDOG RUN - archivos para subir a aulagame.cl
 =============================================
 
 Sube estos 3 archivos HTML a la MISMA carpeta de tu hosting (por ejemplo public_html):

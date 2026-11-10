@@ -47,7 +47,7 @@ s = s.replace('href="online/"', 'href="online.html"').replace('href="offline/"',
 assert 'assets/' not in s.replace('assets/ambient', '')
 (dist / 'index.html').write_text(s, encoding='utf-8')
 
-(dist / 'LEEME.txt').write_text("""BERRY RUN - archivos para subir a aulagame.cl
+(dist / 'LEEME.txt').write_text("""HOTDOG RUN - archivos para subir a aulagame.cl
 =============================================
 
 Sube estos 3 archivos HTML a la MISMA carpeta de tu hosting (por ejemplo public_html):
@@ -68,7 +68,7 @@ Recomendaciones
 - Si actualizas el juego, vuelve a subir los archivos y recarga con Ctrl+F5.
 """, encoding='utf-8')
 
-with zipfile.ZipFile(dist / 'berry-run-aulagame.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+with zipfile.ZipFile(dist / 'hotdog-run-aulagame.zip', 'w', zipfile.ZIP_DEFLATED) as z:
     for f in ['index.html', 'offline.html', 'online.html', 'LEEME.txt']:
         z.write(dist / f, f)
 for f in sorted(dist.iterdir()):

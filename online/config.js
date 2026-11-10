@@ -1,4 +1,4 @@
-/* Configuración de Berry Run Online.
+/* Configuración de Hotdog Run Online.
    Completa estos dos datos desde tu proyecto de Supabase:
    Project Settings › API → «Project URL» y «anon public» key.
    (La clave anon es pública por diseño; la seguridad la dan las políticas RLS de supabase.sql.)
